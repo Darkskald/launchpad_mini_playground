@@ -1,48 +1,35 @@
 mod launchpad;
+mod midi;
 
 use std::io::{stdin, stdout, Write};
 use std::error::Error;
 
 use midir::{MidiOutput, MidiOutputPort, Ignore, MidiOutputConnection};
-
-
-
+use crate::midi::{get_connection};
+use crate::launchpad::LaunchPad;
 
 
 fn main() {
-    let midi_out = MidiOutput::new("Launchpad").expect("Fail");
-    let output_port = get_port(&midi_out).expect("Port creation failed");
-    let mut conn_out = midi_out.connect(&output_port, "midir-test")
-        .expect("Midi connection failed");
+    let midi_out = get_connection();
+    let pad = LaunchPad::new(midi_out);
+    let test: Vec<Vec<u8>> = (0..8)
+        .map(|x| x * 16)
+        .map(|x| (0..9).map(|y| y + x).collect())
+        .collect();
 
+    println!("{:?}", test);
+
+    for i in 0..8 {
+        for j in 0..9 {
+            let key = i * 16 + j;
+            println!("{},{:X?}", key, key)
+        }
+    }
     //conn_out.send(&[NOTE_ON_MSG, 0x00, 0x3B]);
-    flash(&mut conn_out, 0x00,(0x00, 0x03), (0x00, 0x00));
+    //flash(&mut conn_out, 0x00,(0x00, 0x03), (0x00, 0x00));
     return;
 }
 
-fn get_port(op: &MidiOutput) -> Result<MidiOutputPort, Box<dyn Error>> {
-    let out_ports = op.ports();
-    let out_port: MidiOutputPort = match out_ports.len() {
-        0 => return Err("no output port found".into()),
-        1 => {
-            println!("Choosing the only available output port: {}", op.port_name(&out_ports[0]).unwrap());
-            out_ports[0].clone()
-        }
-        _ => {
-            println!("\nAvailable output ports:");
-            for (i, p) in out_ports.iter().enumerate() {
-                println!("{}: {}", i, op.port_name(p).unwrap());
-            }
-            print!("Please select output port: ");
-            stdout().flush()?;
-            let mut input = String::new();
-            stdin().read_line(&mut input)?;
-            out_ports.get(input.trim().parse::<usize>()?)
-                .ok_or("invalid output port selected")?.clone()
-        }
-    };
-    return Ok(out_port);
-}
 
 fn get_color(color: (u8, u8)) -> u8 {
     let (red, green) = color;
@@ -51,7 +38,7 @@ fn get_color(color: (u8, u8)) -> u8 {
     }
     0x10 * green + red
 }
-
+/*
 fn flash(mp: &mut MidiOutputConnection, led_number: u8, color1: (u8, u8), color2: (u8, u8)) {
 
     mp.send(&[DOUBLE_BUFFERING, led_number, 0x20]);
@@ -62,7 +49,7 @@ fn flash(mp: &mut MidiOutputConnection, led_number: u8, color1: (u8, u8), color2
 
 }
 
-/*
+
 fn main() {
     match run() {
         Ok(_) => (),

@@ -29,12 +29,25 @@ pub struct LaunchPad {
 }
 
 impl LaunchPad {
-    /*
-    fn new()-> LaunchPad {
-        // todo instantiate the connection
+    pub(crate) fn new(conn: MidiOutputConnection) -> LaunchPad {
+        let mut lp = LaunchPad {
+            conn: conn,
+            flash_state: false,
+        };
+        return lp;
         // todo set flash_state to false
+        // todo is it possible to disable flashing for all keys? --> 0-120
+        // lp.buffer_msg()
+    }
 
-    }*/
+    fn keys_as_vec() -> Vec<Vec<u8>> {
+        let keys: Vec<Vec<u8>> = (0..8)
+            .map(|x| x * 16)
+            .map(|x| (0..9).map(|y| y + x).collect())
+            .collect();
+
+        return keys;
+    }
 
     // todo clear_flash
     // todo check that key value is valid
@@ -46,4 +59,6 @@ impl LaunchPad {
     fn led_on_msg(&mut self, key: u8, color: LedColor) {
         self.conn.send(&[NOTE_ON_MSG, key, color.get_hex_data()]);
     }
+
+
 }
