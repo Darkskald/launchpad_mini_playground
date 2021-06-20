@@ -1,11 +1,11 @@
+mod launchpad;
+
 use std::io::{stdin, stdout, Write};
 use std::error::Error;
 
 use midir::{MidiOutput, MidiOutputPort, Ignore, MidiOutputConnection};
 
-const NOTE_ON_MSG: u8 = 0x90;
-const NOTE_OFF_MSG: u8 = 0x80;
-const DOUBLE_BUFFERING: u8 = 0xB0;
+
 
 
 
